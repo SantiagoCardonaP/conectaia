@@ -4,7 +4,7 @@ from components.simulador import render_simulador
 from components.preguntas import render_chat_flotante
 
 st.set_page_config(
-    page_title="ConectaIA — Centros Digitales Rurales",
+    page_title="ConectaIA — Centros Digitales Ruraless",
     page_icon="🌐",
     layout="wide"
 )

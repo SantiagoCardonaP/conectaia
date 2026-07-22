@@ -1,0 +1,287 @@
+@charset "utf-8";
+
+iframe {
+    height: 700px !important;
+    width: 100% !important;
+}
+.block-container {
+    padding-top: 1rem;
+    padding-bottom: 0rem;
+}
+
+/* Indicador de carga: Streamlit ya muestra automáticamente un ícono
+   de "Running..." cada vez que cambias un filtro/control y la app
+   se recalcula. Aquí lo agrandamos y le damos color para que sea
+   evidente que el dashboard está procesando el cambio. */
+[data-testid="stStatusWidget"] {
+    transform: scale(1.6);
+    transform-origin: top right;
+    background-color: #62A7B4;
+    border-radius: 8px;
+    padding: 4px 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+[data-testid="stStatusWidget"] * {
+    color: #ffffff !important;
+}
+
+/* Botón de chat flotante: fijo abajo a la derecha, sobre toda la app.
+   Se sube a 100px del borde inferior y con z-index muy alto para
+   quedar POR ENCIMA de los íconos propios de Streamlit Cloud
+   (badge de "Manage app" / deployment), que también son fixed
+   bottom-right y si no, tapan nuestro botón. */
+[class*="st-key-chat_flotante"] {
+    position: fixed !important;
+    bottom: 100px;
+    right: 24px;
+    z-index: 999999 !important;
+    width: auto !important;
+}
+[class*="st-key-chat_flotante"] button {
+    border-radius: 30px !important;
+    padding: 10px 20px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35) !important;
+    background-color: #CA5E50 !important;
+    color: white !important;
+    border: none !important;
+    animation: pulso-chat 2.5s infinite;
+}
+@keyframes pulso-chat {
+    0%   { box-shadow: 0 4px 14px rgba(202,94,80,0.5), 0 0 0 0 rgba(202,94,80,0.6); }
+    70%  { box-shadow: 0 4px 14px rgba(202,94,80,0.5), 0 0 0 12px rgba(202,94,80,0); }
+    100% { box-shadow: 0 4px 14px rgba(202,94,80,0.5), 0 0 0 0 rgba(202,94,80,0); }
+}
+
+@font-face {
+    font-family: "EPM-Rounded";
+    src: url("__FONT_EPM__") format("truetype");
+}
+
+* {
+    font-family: "Epm-Rounded", sans-serif;
+}
+
+p, ol, ul {
+    color: #545454;
+    font-size: 16px;
+    font-family: "Epm-Rounded", sans-serif;
+    font-weight: lighter;
+}
+
+h1, h2, h3, h4, h5, strong {
+    font-weight: normal !important;
+}
+
+.st-emotion-cache-13k62yr p, .st-emotion-cache-13k62yr ol, .st-emotion-cache-13k62yr ul,
+.st-emotion-cache-4cktc5 p, .st-emotion-cache-4cktc5 ol, .st-emotion-cache-4cktc5 ul,
+.st-emotion-cache-orvy8c p, .st-emotion-cache-orvy8c ol, .st-emotion-cache-orvy8c ul {
+    color: #FFF;
+}
+
+.st-emotion-cache-13k62yr span[style="font-size: 13px; color: rgb(68, 68, 68);"] {
+    color: #FFF !important;
+}
+
+[data-testid="stHeaderActionElements"] {
+    display: none;
+}
+
+header.stAppHeader {
+    width: auto;
+    height: 35px;
+    min-height: auto;
+    right: 0;
+    left: auto;
+}
+
+header.stAppHeader .e1yxiy6j6 {
+    min-width: auto;
+}
+
+.stVerticalBlock {
+    padding: 0 20px;
+}
+
+.stMainBlockContainer.block-container {
+    padding: 0;
+}
+
+.headerP {
+    position: relative;
+    text-align: center;
+}
+
+.headerP__volver {
+    position: absolute;
+    display: flex;
+    height: 40px;
+    padding: 6px 25px;
+    background: #36a21d;
+    color: #fff !important;
+    text-decoration: none !important;
+    border-radius: 0 0 25px 25px !important;
+    align-items: center;
+    gap: 10px;
+    left: 0;
+    top: -1rem;
+}
+
+.headerP__img {
+    width: 340px;
+    margin-top: 20px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 20px;
+    object-fit: cover !important;
+}
+
+.headerP .headerP__title {
+    color: #007934;
+    font-size: 16px;
+    font-weight: normal;
+}
+
+.headerP p {
+    font-size: 18px;
+}
+
+.footerP {
+    position: relative;
+    padding: 25px;
+    background: #007934;
+    text-align: center;
+    z-index: 1;
+}
+
+.footerP::before {
+    content: "";
+    position: absolute;
+    width: calc(100% + 40px);
+    height: 100%;
+    background: #007934;
+    left: -20px;
+    top: 0;
+    z-index: -1;
+}
+
+.footerP__img {
+    width: 200px;
+    object-fit: cover !important;
+}
+
+/* Chat */
+.stVerticalBlock.st-key-chat_flotante,
+.stVerticalBlock.st-emotion-cache-wfksaw {
+    padding: 0;
+}
+
+.stVerticalBlock.st-key-chat_flotante button {
+    background: #36A21D !important;
+    border: 1px solid #2EC60B !important;
+}
+
+.stVerticalBlock.st-key-chat_flotante button p {
+    display: flex;
+    color: #FFF;
+    align-items: center;
+    gap: 5px;
+}
+
+.stVerticalBlock.st-key-chat_flotante button p::before {
+    content: "";
+    display: flex;
+    width: 20px;
+    height: 20px;
+    background: url("__ICON_PREGUNTAS__");
+}
+
+.stVerticalBlock.st-key-chat_flotante .st-emotion-cache-28gi3v {
+    margin-left: 10px;
+}
+
+.stVerticalBlock.st-key-chat_flotante .st-emotion-cache-28gi3v,
+.stVerticalBlock.st-key-chat_flotante .st-emotion-cache-1dkvzay {
+    width: 20px;
+    height: 20px;
+    font-size: 30px;
+}
+
+.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-yn44r9 p {
+    color: #007934;
+}
+
+.stVerticalBlock.st-emotion-cache-wfksaw .e1p9v2yr1 {
+    background: none;
+    border: 1px solid #CFCFCF;
+}
+
+.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-184dg47,
+.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-23r7bk,
+.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-khw9fs {
+    background: #36A21D;
+}
+
+.stVerticalBlock.st-emotion-cache-wfksaw textarea {
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: lighter;
+}
+
+/* Tabs */
+.e1ac7blb3[class*="st-emotion-cache-"] .etxdrby0[class*="st-emotion-cache-"] p {
+    position: relative;
+    display: flex;
+    padding: 0 15px;
+    font-size: 18px;
+    gap: 5px;
+    align-items: center;
+}
+
+.e1ac7blb3[class*="st-emotion-cache-"] .etxdrby0[class*="st-emotion-cache-"] p::before {
+    content: "";
+    display: flex;
+    width: 20px;
+    height: 20px;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    filter: grayscale(1);
+}
+
+.e1ac7blb3[class*="st-emotion-cache-"] .e1ac7blb4:nth-child(1) p::before {
+    background: url("__ICON_MAPA__");
+}
+
+.e1ac7blb3[class*="st-emotion-cache-"] .e1ac7blb4:nth-child(2) p::before {
+    background: url("__ICON_SIMULADOR__");
+}
+
+.e1ac7blb3[class*="st-emotion-cache-"] .e1ac7blb4[data-selected] p {
+    color: #007934;
+    font-weight: normal;
+}
+
+.e1ac7blb3[class*="st-emotion-cache-"] .e1ac7blb4[data-selected] p::before {
+    filter: grayscale(0);
+}
+
+.e1ac7blb4[data-selected] .react-aria-SelectionIndicator {
+    background: #007934;
+}
+
+[data-focus-within],
+.st-emotion-cache-1xkti1d,
+.st-emotion-cache-135m9b {
+    border-color: #007934 !important;
+}
+
+.e1rv0tzo2:hover:enabled,
+.e1rv0tzo2:focus:enabled {
+    background: #007934 !important;
+}
+
+.st-emotion-cache-xjxhw3 {
+    background: #007934 !important;
+    border-color: #007934 !important;
+}

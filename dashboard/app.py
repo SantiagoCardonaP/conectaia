@@ -5,6 +5,7 @@ from pathlib import Path
 from components.header import render_header
 from components.mapa import render_mapa
 from components.simulador import render_simulador
+from components.glosario import render_glosario
 from components.preguntas import render_chat_flotante
 from components.footer import render_footer
 
@@ -27,6 +28,7 @@ def load_css():
         "__ICON_PREGUNTAS__": ("img/icon-preguntas.svg", "image/svg+xml"),
         "__ICON_MAPA__": ("img/icon-mapa.svg", "image/svg+xml"),
         "__ICON_SIMULADOR__": ("img/icon-simulador.svg", "image/svg+xml"),
+        "__ICON_GLOSARIO__": ("img/icon-glosario.svg", "image/svg+xml"),
         "__ICON_SELECT__": ("img/icon-select.svg", "image/svg+xml"),
         "__ICON_PAPELERA__": ("img/icon-papalera.svg", "image/svg+xml")
     }
@@ -47,13 +49,18 @@ load_css()
 
 render_header()
 
-tab_mapa, tab_simulador = st.tabs(["Mapa de municipios", "Simulador de impacto"])
+tab_mapa, tab_simulador, tab_glosario = st.tabs(
+    ["Mapa de municipios", "Simulador de impacto", "Glosario"]
+)
 
 with tab_mapa:
     render_mapa()
 
 with tab_simulador:
     render_simulador()
+
+with tab_glosario:
+    render_glosario()
 
 render_chat_flotante()
 

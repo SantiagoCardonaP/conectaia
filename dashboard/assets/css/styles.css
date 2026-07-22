@@ -257,6 +257,10 @@ header.stAppHeader .e1yxiy6j6 {
     background: url("__ICON_SIMULADOR__");
 }
 
+.e1ac7blb3[class*="st-emotion-cache-"] .e1ac7blb4:nth-child(3) p::before {
+    background: url("__ICON_GLOSARIO__");
+}
+
 .e1ac7blb3[class*="st-emotion-cache-"] .e1ac7blb4[data-selected] p {
     color: #007934;
     font-weight: normal;

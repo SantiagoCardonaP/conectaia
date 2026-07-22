@@ -70,8 +70,18 @@ p, ol, ul {
     font-weight: lighter;
 }
 
-.st-emotion-cache-13k62yr p, .st-emotion-cache-13k62yr ol, .st-emotion-cache-13k62yr ul {
+h1, h2, h3, h4, h5, strong {
+    font-weight: normal !important;
+}
+
+.st-emotion-cache-13k62yr p, .st-emotion-cache-13k62yr ol, .st-emotion-cache-13k62yr ul,
+.st-emotion-cache-4cktc5 p, .st-emotion-cache-4cktc5 ol, .st-emotion-cache-4cktc5 ul,
+.st-emotion-cache-orvy8c p, .st-emotion-cache-orvy8c ol, .st-emotion-cache-orvy8c ul {
     color: #FFF;
+}
+
+.st-emotion-cache-13k62yr span[style="font-size: 13px; color: rgb(68, 68, 68);"] {
+    color: #FFF !important;
 }
 
 [data-testid="stHeaderActionElements"] {
@@ -200,22 +210,16 @@ header.stAppHeader .e1yxiy6j6 {
 
 .stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-yn44r9 p {
     color: #007934;
-    font-size: 16px;
-    font-weight: lighter;
 }
 
-.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-yn44r9 p strong {
-    font-weight: normal;
-}
-
-.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-6mn6c9,
-.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-jchovf {
+.stVerticalBlock.st-emotion-cache-wfksaw .e1p9v2yr1 {
     background: none;
     border: 1px solid #CFCFCF;
 }
 
 .stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-184dg47,
-.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-23r7bk {
+.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-23r7bk,
+.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-khw9fs {
     background: #36A21D;
 }
 
@@ -264,4 +268,20 @@ header.stAppHeader .e1yxiy6j6 {
 
 .e1ac7blb4[data-selected] .react-aria-SelectionIndicator {
     background: #007934;
+}
+
+[data-focus-within],
+.st-emotion-cache-1xkti1d,
+.st-emotion-cache-135m9b {
+    border-color: #007934 !important;
+}
+
+.e1rv0tzo2:hover:enabled,
+.e1rv0tzo2:focus:enabled {
+    background: #007934 !important;
+}
+
+.st-emotion-cache-xjxhw3 {
+    background: #007934 !important;
+    border-color: #007934 !important;
 }

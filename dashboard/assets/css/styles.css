@@ -56,7 +56,7 @@ iframe {
 
 @font-face {
     font-family: "EPM-Rounded";
-    src: url("__EPM_FONT__") format("truetype");
+    src: url("__FONT_EPM__") format("truetype");
 }
 
 * {
@@ -74,8 +74,10 @@ p, ol, ul {
     display: none;
 }
 
-header.stAppHeader {
-    display: none;
+header.stAppHeader,
+._profileContainer_gzau3_53,
+._container_gzau3_1._viewerBadge_aycw8_23 {
+    display: none !important;
 }
 
 .stVerticalBlock {
@@ -144,4 +146,59 @@ header.stAppHeader {
 .footerP__img {
     width: 200px;
     object-fit: cover !important;
+}
+
+.stVerticalBlock.st-key-chat_flotante,
+.stVerticalBlock.st-emotion-cache-wfksaw {
+    padding: 0;
+}
+
+.stVerticalBlock.st-key-chat_flotante button {
+    background: #36A21D !important;
+    border: 1px solid #2EC60B !important;
+}
+
+.stVerticalBlock.st-key-chat_flotante button p {
+    display: flex;
+    color: #FFF;
+    align-items: center;
+    gap: 5px;
+}
+
+.stVerticalBlock.st-key-chat_flotante button p::before {
+    content: "";
+    display: flex;
+    width: 20px;
+    height: 20px;
+    background: url("__ICON_PREGUNTAS__");
+}
+
+.stVerticalBlock.st-key-chat_flotante .st-emotion-cache-28gi3v {
+    margin-left: 10px;
+}
+
+.stVerticalBlock.st-key-chat_flotante .st-emotion-cache-28gi3v,
+.stVerticalBlock.st-key-chat_flotante .st-emotion-cache-1dkvzay {
+    width: 20px;
+    height: 20px;
+    font-size: 30px;
+}
+
+.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-yn44r9 p {
+    color: #007934;
+    font-size: 16px;
+    font-weight: lighter;
+}
+
+.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-yn44r9 p strong {
+    font-weight: normal;
+}
+
+.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-6mn6c9 {
+    background: none;
+    border: 1px solid #CFCFCF;
+}
+
+.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-184dg47 {
+    background: #36A21D;
 }

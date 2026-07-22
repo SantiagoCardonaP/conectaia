@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import base64
 from pathlib import Path
@@ -13,15 +14,31 @@ st.set_page_config(
     layout="wide"
 )
 
+def to_base64(path):
+    return base64.b64encode(path.read_bytes()).decode()
+
 def load_css():
-    css_path = Path(__file__).parent / "assets" / "css" / "styles.css"
-    font_path = Path(__file__).parent / "assets" / "css" / "EPMRoundedBTVF.ttf"
+    assets = Path(__file__).parent / "assets"
+    css_path = assets / "css" / "styles.css"
     css = css_path.read_text(encoding="utf-8")
-    font = base64.b64encode(font_path.read_bytes()).decode()
-    css = css.replace(
-        "__EPM_FONT__",
-        f"data:font/ttf;base64,{font}"
-    )
+    recursos = {
+        "__FONT_EPM__": ("css/EPMRoundedBTVF.ttf", "font/ttf"),
+        "__ICON_VOLVER__": ("img/icon-volver.svg", "image/svg+xml"),
+        "__ICON_PREGUNTAS__": ("img/icon-preguntas.svg", "image/svg+xml"),
+        "__ICON_MAPA__": ("img/icon-mapa.svg", "image/svg+xml"),
+        "__ICON_SIMULADOR__": ("img/icon-simulador.svg", "image/svg+xml"),
+        "__ICON_SELECT__": ("img/icon-select.svg", "image/svg+xml"),
+        "__ICON_PAPELERA__": ("img/icon-papalera.svg", "image/svg+xml")
+    }
+
+    for variable, (archivo, mime) in recursos.items():
+        ruta = assets / archivo
+        contenido = to_base64(ruta)
+        css = css.replace(
+            variable,
+            f"data:{mime};base64,{contenido}"
+        )
+
     st.markdown(
         f"<style>{css}</style>",
         unsafe_allow_html=True

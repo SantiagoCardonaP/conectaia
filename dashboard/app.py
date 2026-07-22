@@ -1,7 +1,11 @@
 import streamlit as st
+import base64
+from pathlib import Path
+from components.header import render_header
 from components.mapa import render_mapa
 from components.simulador import render_simulador
 from components.preguntas import render_chat_flotante
+from components.footer import render_footer
 
 st.set_page_config(
     page_title="ConectaIA — Centros Digitales Ruraless",
@@ -9,66 +13,22 @@ st.set_page_config(
     layout="wide"
 )
 
-st.markdown("""
-    <style>
-        iframe {
-            height: 700px !important;
-            width: 100% !important;
-        }
-        .block-container {
-            padding-top: 1rem;
-            padding-bottom: 0rem;
-        }
+def load_css():
+    css_path = Path(__file__).parent / "assets" / "css" / "styles.css"
+    font_path = Path(__file__).parent / "assets" / "css" / "EPMRoundedBTVF.ttf"
+    css = css_path.read_text(encoding="utf-8")
+    font = base64.b64encode(font_path.read_bytes()).decode()
+    css = css.replace(
+        "__EPM_FONT__",
+        f"data:font/ttf;base64,{font}"
+    )
+    st.markdown(
+        f"<style>{css}</style>",
+        unsafe_allow_html=True
+    )
+load_css()
 
-        /* Indicador de carga: Streamlit ya muestra automáticamente un ícono
-           de "Running..." cada vez que cambias un filtro/control y la app
-           se recalcula. Aquí lo agrandamos y le damos color para que sea
-           evidente que el dashboard está procesando el cambio. */
-        [data-testid="stStatusWidget"] {
-            transform: scale(1.6);
-            transform-origin: top right;
-            background-color: #62A7B4;
-            border-radius: 8px;
-            padding: 4px 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-        }
-        [data-testid="stStatusWidget"] * {
-            color: #ffffff !important;
-        }
-
-        /* Botón de chat flotante: fijo abajo a la derecha, sobre toda la app.
-           Se sube a 100px del borde inferior y con z-index muy alto para
-           quedar POR ENCIMA de los íconos propios de Streamlit Cloud
-           (badge de "Manage app" / deployment), que también son fixed
-           bottom-right y si no, tapan nuestro botón. */
-        [class*="st-key-chat_flotante"] {
-            position: fixed !important;
-            bottom: 100px;
-            right: 24px;
-            z-index: 999999 !important;
-            width: auto !important;
-        }
-        [class*="st-key-chat_flotante"] button {
-            border-radius: 30px !important;
-            padding: 10px 20px !important;
-            font-size: 15px !important;
-            font-weight: 600 !important;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.35) !important;
-            background-color: #CA5E50 !important;
-            color: white !important;
-            border: none !important;
-            animation: pulso-chat 2.5s infinite;
-        }
-        @keyframes pulso-chat {
-            0%   { box-shadow: 0 4px 14px rgba(202,94,80,0.5), 0 0 0 0 rgba(202,94,80,0.6); }
-            70%  { box-shadow: 0 4px 14px rgba(202,94,80,0.5), 0 0 0 12px rgba(202,94,80,0); }
-            100% { box-shadow: 0 4px 14px rgba(202,94,80,0.5), 0 0 0 0 rgba(202,94,80,0); }
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-st.title("🌐 ConectaIA — Impacto de los Centros Digitales Rurales")
-st.markdown("Análisis del impacto educativo de los Centros Digitales Rurales en Colombia · EPM & Julius AI")
+render_header()
 
 tab_mapa, tab_simulador = st.tabs(["Mapa de municipios", "Simulador de impacto"])
 
@@ -79,3 +39,5 @@ with tab_simulador:
     render_simulador()
 
 render_chat_flotante()
+
+render_footer()

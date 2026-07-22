@@ -1,0 +1,147 @@
+@charset "utf-8";
+
+iframe {
+    height: 700px !important;
+    width: 100% !important;
+}
+.block-container {
+    padding-top: 1rem;
+    padding-bottom: 0rem;
+}
+
+/* Indicador de carga: Streamlit ya muestra automáticamente un ícono
+   de "Running..." cada vez que cambias un filtro/control y la app
+   se recalcula. Aquí lo agrandamos y le damos color para que sea
+   evidente que el dashboard está procesando el cambio. */
+[data-testid="stStatusWidget"] {
+    transform: scale(1.6);
+    transform-origin: top right;
+    background-color: #62A7B4;
+    border-radius: 8px;
+    padding: 4px 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+[data-testid="stStatusWidget"] * {
+    color: #ffffff !important;
+}
+
+/* Botón de chat flotante: fijo abajo a la derecha, sobre toda la app.
+   Se sube a 100px del borde inferior y con z-index muy alto para
+   quedar POR ENCIMA de los íconos propios de Streamlit Cloud
+   (badge de "Manage app" / deployment), que también son fixed
+   bottom-right y si no, tapan nuestro botón. */
+[class*="st-key-chat_flotante"] {
+    position: fixed !important;
+    bottom: 100px;
+    right: 24px;
+    z-index: 999999 !important;
+    width: auto !important;
+}
+[class*="st-key-chat_flotante"] button {
+    border-radius: 30px !important;
+    padding: 10px 20px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35) !important;
+    background-color: #CA5E50 !important;
+    color: white !important;
+    border: none !important;
+    animation: pulso-chat 2.5s infinite;
+}
+@keyframes pulso-chat {
+    0%   { box-shadow: 0 4px 14px rgba(202,94,80,0.5), 0 0 0 0 rgba(202,94,80,0.6); }
+    70%  { box-shadow: 0 4px 14px rgba(202,94,80,0.5), 0 0 0 12px rgba(202,94,80,0); }
+    100% { box-shadow: 0 4px 14px rgba(202,94,80,0.5), 0 0 0 0 rgba(202,94,80,0); }
+}
+
+@font-face {
+    font-family: "EPM-Rounded";
+    src: url("__EPM_FONT__") format("truetype");
+}
+
+* {
+    font-family: "Epm-Rounded", sans-serif;
+}
+
+p, ol, ul {
+    color: #545454;
+    font-size: 16px;
+    font-family: "Epm-Rounded", sans-serif;
+    font-weight: lighter;
+}
+
+[data-testid="stHeaderActionElements"] {
+    display: none;
+}
+
+header.stAppHeader {
+    display: none;
+}
+
+.stVerticalBlock {
+    padding: 0 20px;
+}
+
+.stMainBlockContainer.block-container {
+    padding: 0;
+}
+
+.headerP {
+    position: relative;
+    text-align: center;
+}
+
+.headerP__volver {
+    position: absolute;
+    display: flex;
+    height: 40px;
+    padding: 6px 25px;
+    background: #36a21d;
+    color: #fff !important;
+    text-decoration: none !important;
+    border-radius: 0 0 25px 25px !important;
+    align-items: center;
+    gap: 10px;
+    left: 0;
+    top: -1rem;
+}
+
+.headerP__img {
+    width: 300px;
+    object-fit: cover !important;
+    margin-top: 20px;
+}
+
+.headerP .headerP__title {
+    color: #007934;
+    font-size: 16px;
+    font-weight: normal;
+}
+
+.headerP p {
+    font-size: 18px;
+}
+
+.footerP {
+    position: relative;
+    padding: 25px;
+    background: #007934;
+    text-align: center;
+    z-index: 1;
+}
+
+.footerP::before {
+    content: "";
+    position: absolute;
+    width: calc(100% + 40px);
+    height: 100%;
+    background: #007934;
+    left: -20px;
+    top: 0;
+    z-index: -1;
+}
+
+.footerP__img {
+    width: 200px;
+    object-fit: cover !important;
+}

@@ -70,14 +70,24 @@ p, ol, ul {
     font-weight: lighter;
 }
 
+.st-emotion-cache-13k62yr p, .st-emotion-cache-13k62yr ol, .st-emotion-cache-13k62yr ul {
+    color: #FFF;
+}
+
 [data-testid="stHeaderActionElements"] {
     display: none;
 }
 
-header.stAppHeader,
-._profileContainer_gzau3_53,
-._container_gzau3_1._viewerBadge_aycw8_23 {
-    display: none !important;
+header.stAppHeader {
+    width: auto;
+    height: 35px;
+    min-height: auto;
+    right: 0;
+    left: auto;
+}
+
+header.stAppHeader .e1yxiy6j6 {
+    min-width: auto;
 }
 
 .stVerticalBlock {
@@ -109,9 +119,12 @@ header.stAppHeader,
 }
 
 .headerP__img {
-    width: 300px;
-    object-fit: cover !important;
+    width: 340px;
     margin-top: 20px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 20px;
+    object-fit: cover !important;
 }
 
 .headerP .headerP__title {
@@ -148,6 +161,7 @@ header.stAppHeader,
     object-fit: cover !important;
 }
 
+/* Chat */
 .stVerticalBlock.st-key-chat_flotante,
 .stVerticalBlock.st-emotion-cache-wfksaw {
     padding: 0;
@@ -194,11 +208,60 @@ header.stAppHeader,
     font-weight: normal;
 }
 
-.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-6mn6c9 {
+.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-6mn6c9,
+.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-jchovf {
     background: none;
     border: 1px solid #CFCFCF;
 }
 
-.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-184dg47 {
+.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-184dg47,
+.stVerticalBlock.st-emotion-cache-wfksaw .st-emotion-cache-23r7bk {
     background: #36A21D;
+}
+
+.stVerticalBlock.st-emotion-cache-wfksaw textarea {
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: lighter;
+}
+
+/* Tabs */
+.e1ac7blb3[class*="st-emotion-cache-"] .etxdrby0[class*="st-emotion-cache-"] p {
+    position: relative;
+    display: flex;
+    padding: 0 15px;
+    font-size: 18px;
+    gap: 5px;
+    align-items: center;
+}
+
+.e1ac7blb3[class*="st-emotion-cache-"] .etxdrby0[class*="st-emotion-cache-"] p::before {
+    content: "";
+    display: flex;
+    width: 20px;
+    height: 20px;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    filter: grayscale(1);
+}
+
+.e1ac7blb3[class*="st-emotion-cache-"] .e1ac7blb4:nth-child(1) p::before {
+    background: url("__ICON_MAPA__");
+}
+
+.e1ac7blb3[class*="st-emotion-cache-"] .e1ac7blb4:nth-child(2) p::before {
+    background: url("__ICON_SIMULADOR__");
+}
+
+.e1ac7blb3[class*="st-emotion-cache-"] .e1ac7blb4[data-selected] p {
+    color: #007934;
+    font-weight: normal;
+}
+
+.e1ac7blb3[class*="st-emotion-cache-"] .e1ac7blb4[data-selected] p::before {
+    filter: grayscale(0);
+}
+
+.e1ac7blb4[data-selected] .react-aria-SelectionIndicator {
+    background: #007934;
 }

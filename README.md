@@ -28,13 +28,19 @@
   a qué velocidades sube y baja datos, si está en zona rural, y cuál es su estado (en operación, en instalación o en planeación). Esta fuente tiene **14.057 registros** de sedes individuales a lo largo del
   territorio nacional.
 
+  🔗 Fuente: [https://www.datos.gov.co/d/fybg-535s](https://www.datos.gov.co/d/fybg-535s)
+
   ### 2. DIVIPOLA, DANE
   El listado oficial de municipios de Colombia con sus nombres y códigos únicos. Es la referencia que permite conectar información de distintas fuentes bajo un mismo identificador. Contiene los **1.122
   municipios** del país.
 
+  🔗 Fuente: [https://www.datos.gov.co/d/gdxc-w37w](https://www.datos.gov.co/d/gdxc-w37w)
+
   ### 3. Estadísticas Educativas, Ministerio de Educación Nacional (MEN)
   Indicadores educativos por municipio y año, desde 2011 hasta 2024. Incluye tres métricas clave: **tasa de deserción escolar** (cuántos niños abandonan el colegio), **cobertura neta** (qué porcentaje de niños
    en edad escolar están matriculados en el grado correcto), y **tasa de aprobación** (cuántos estudiantes pasan el año). Esta fuente tiene **15.707 registros** históricos.
+
+  🔗 Fuente: [https://www.datos.gov.co/d/nudc-7mev](https://www.datos.gov.co/d/nudc-7mev)
 
   ---
 
@@ -79,6 +85,42 @@
   - **Índice de ruralidad**: Qué proporción de las sedes del municipio están en zona rural (solo disponible para municipios con CD).
   - **Dificultad de acceso**: Qué tan difícil es llegar físicamente al municipio, medido por el nivel de dificultad reportado en las sedes del centro digital.
   - **Población en edad escolar**: El promedio de niños y jóvenes entre 5 y 16 años, que es la población objetivo del sistema educativo.
+
+  ---
+
+  ## ¿Qué variables se utilizaron de cada fuente?
+
+  En total, el pipeline utiliza activamente **22 variables** provenientes de las tres fuentes oficiales (más las variables de perfil territorial derivadas de ellas, descritas en la sección anterior).
+
+  ### Dataset 1 — Centros Digitales Rurales, MinTIC (10 variables)
+  1. `municipio` — llave de cruce
+  2. `departamento` — llave de cruce
+  3. `estados` — usado como filtro (solo se conservan sedes en estado "OPERACIÓN")
+  4. `inversion` → agregada como inversión total por municipio
+  5. `usuarios_activos_mes` → agregada como promedio de usuarios activos
+  6. `velocidad_conexion_subida` → agregada como promedio
+  7. `velocidad_conexion_bajada` → agregada como promedio
+  8. `zona` → usada para calcular el índice de ruralidad
+  9. `dificultadacceso` → usada para el nivel de dificultad de acceso
+  10. `priorizacion` → usada para determinar si el municipio es zona PDET
+
+  *(El número de sedes por municipio es una variable derivada: se calcula contando registros, no viene como campo directo.)*
+
+  ### Dataset 2 — DIVIPOLA, DANE (3 variables)
+  11. `codigo_municipio` — código único, usado como llave de cruce definitiva
+  12. `nombre_municipio` — usado en el proceso de estandarización de nombres
+  13. `nombre_departamento` — usado en el proceso de estandarización de nombres
+
+  ### Dataset 3 — Estadísticas Educativas, MEN (9 variables)
+  14. `anio` — para el análisis histórico 2011–2024
+  15. `codigo_municipio` — llave de cruce
+  16. `municipio` — nombre
+  17. `departamento` — nombre
+  18. `cobertura_neta` — componente del IEC
+  19. `desercion` — componente del IEC y usada en el índice de ruralidad histórica
+  20. `aprobacion` — componente del IEC
+  21. `poblacion_5_16` — usada como criterio de clustering
+  22. `sedes_conectadas_internet`
 
   ---
 
@@ -242,3 +284,9 @@
   ---
 
   *ConectaIA fue desarrollado como propuesta para la competencia de datos abiertos, usando exclusivamente fuentes oficiales del Gobierno colombiano.*
+
+  ---
+
+  ## Recursos
+
+  - 📊 Presentación (PPT): [Ver presentación](https://docs.google.com/presentation/d/1zzzFufKFxMBnuvP6f-rbLaB18V-8y4oB/edit?usp=sharing&ouid=106959109476332805208&rtpof=true&sd=true)

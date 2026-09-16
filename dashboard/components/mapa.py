@@ -173,7 +173,11 @@ def _geojson_con_detalle(_iec_df_full, geojson):
     return geojson_anotado
 
 
-def construir_mapa(iec_df, geojson, codigo_seleccionado=None):
+def mapa_base_colombia():
+    """folium.Map ya configurado con la base y el encuadre del mapa
+    principal (tiles, zoom, bounds). La usan tanto el mapa de la pestaña
+    Mapa como el del simulador, para que los dos se vean y se comporten
+    igual y cualquier ajuste futuro se haga en un solo lugar."""
     mapa = folium.Map(
         location=[4.5, -74.0],
         zoom_start=5,
@@ -194,6 +198,11 @@ def construir_mapa(iec_df, geojson, codigo_seleccionado=None):
     mapa.fit_bounds(COLOMBIA_BOUNDS)
     mapa.options["maxBounds"] = COLOMBIA_BOUNDS
     mapa.options["maxBoundsViscosity"] = 1.0
+    return mapa
+
+
+def construir_mapa(iec_df, geojson, codigo_seleccionado=None):
+    mapa = mapa_base_colombia()
 
     iec_dict = iec_df.set_index("codigo_municipio_men").to_dict("index")
 

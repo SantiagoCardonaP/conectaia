@@ -7,6 +7,7 @@ import streamlit as st
 from streamlit_folium import st_folium
 from openai import OpenAI
 from db.connection import get_engine, cargar_importancia
+from components.mapa import mapa_base_colombia
 
 
 @st.cache_resource
@@ -117,63 +118,72 @@ o mantener la efectividad. Sé directo, evita tecnicismos y usa máximo 150 pala
 
 def construir_mapa_simulacion(geojson, codigo_municipio, municipio, iec_real,
                                iec_promedio_cluster, nivel_predicho, diferencia):
-    mapa = folium.Map(location=[4.5, -74.0], zoom_start=5, tiles="CartoDB positron")
+    # Misma base (tiles, zoom, encuadre a Colombia) que el mapa principal.
+    mapa = mapa_base_colombia()
     color_pred = COLORES_NIVEL.get(nivel_predicho, "#666")
     signo = "+" if diferencia > 0 else ""
 
-    for feature in geojson["features"]:
-        codigo = feature["properties"].get("MPIO_CCNCT")
+    # Una sola capa GeoJson para el resto de municipios (atenuados, sin
+    # popup) en vez de un folium.GeoJson por municipio: es el mismo ajuste
+    # de rendimiento que se hizo en el mapa principal, evita reconstruir
+    # >1000 objetos folium cada vez que se simula.
+    folium.GeoJson(
+        geojson,
+        style_function=lambda feature: {
+            "fillColor": "#dddddd",
+            "color": "#ffffff",
+            "weight": 0.3,
+            "fillOpacity": 0.5,
+        },
+    ).add_to(mapa)
 
-        if codigo == codigo_municipio:
-            popup_html = f"""
-                <div style="font-family:Arial; min-width:220px;">
-                    <h4 style="margin:0; color:#222;">{municipio}</h4>
-                    <div style="
-                        background:{color_pred}22;
-                        border-left:4px solid {color_pred};
-                        padding:6px 10px;
-                        border-radius:4px;
-                        margin:8px 0;
-                    ">
-                        <b style="color:{color_pred};">Efectividad simulada: {nivel_predicho}</b>
-                    </div>
-                    <table style="width:100%; font-size:12px;">
-                        <tr>
-                            <td style="color:#555;">IEC actual</td>
-                            <td style="text-align:right;"><b>{iec_real:.1f}</b>/100</td>
-                        </tr>
-                        <tr>
-                            <td style="color:#555;">IEC promedio del grupo</td>
-                            <td style="text-align:right;"><b>{iec_promedio_cluster:.1f}</b>/100</td>
-                        </tr>
-                        <tr>
-                            <td style="color:#555;">Diferencia vs grupo</td>
-                            <td style="text-align:right; color:{color_pred};"><b>{signo}{diferencia:.1f} pts</b></td>
-                        </tr>
-                    </table>
+    # El municipio simulado se resalta aparte, como una capa propia con su
+    # popup — es el único que necesita esa info, así que no hace falta
+    # tocar los demás 1121 municipios para dársela.
+    feature_sel = next(
+        (f for f in geojson["features"] if f["properties"].get("MPIO_CCNCT") == codigo_municipio),
+        None,
+    )
+    if feature_sel is not None:
+        popup_html = f"""
+            <div style="font-family:Arial; min-width:220px;">
+                <h4 style="margin:0; color:#222;">{municipio}</h4>
+                <div style="
+                    background:{color_pred}22;
+                    border-left:4px solid {color_pred};
+                    padding:6px 10px;
+                    border-radius:4px;
+                    margin:8px 0;
+                ">
+                    <b style="color:{color_pred};">Efectividad simulada: {nivel_predicho}</b>
                 </div>
-            """
-            folium.GeoJson(
-                feature,
-                style_function=lambda x, c=color_pred: {
-                    "fillColor": c,
-                    "color": "#333",
-                    "weight": 2,
-                    "fillOpacity": 0.8,
-                },
-                tooltip=municipio,
-                popup=folium.Popup(popup_html, max_width=280),
-            ).add_to(mapa)
-        else:
-            folium.GeoJson(
-                feature,
-                style_function=lambda x: {
-                    "fillColor": "#dddddd",
-                    "color": "#ffffff",
-                    "weight": 0.3,
-                    "fillOpacity": 0.5,
-                },
-            ).add_to(mapa)
+                <table style="width:100%; font-size:12px;">
+                    <tr>
+                        <td style="color:#555;">IEC actual</td>
+                        <td style="text-align:right;"><b>{iec_real:.1f}</b>/100</td>
+                    </tr>
+                    <tr>
+                        <td style="color:#555;">IEC promedio del grupo</td>
+                        <td style="text-align:right;"><b>{iec_promedio_cluster:.1f}</b>/100</td>
+                    </tr>
+                    <tr>
+                        <td style="color:#555;">Diferencia vs grupo</td>
+                        <td style="text-align:right; color:{color_pred};"><b>{signo}{diferencia:.1f} pts</b></td>
+                    </tr>
+                </table>
+            </div>
+        """
+        folium.GeoJson(
+            feature_sel,
+            style_function=lambda feature, c=color_pred: {
+                "fillColor": c,
+                "color": "#333",
+                "weight": 2,
+                "fillOpacity": 0.8,
+            },
+            tooltip=municipio,
+            popup=folium.Popup(popup_html, max_width=280),
+        ).add_to(mapa)
 
     return mapa
 

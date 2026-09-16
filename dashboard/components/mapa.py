@@ -1,4 +1,5 @@
 import os
+import copy
 import json
 import folium
 import streamlit as st
@@ -78,10 +79,11 @@ máximo 160 palabras en total.
     return response.choices[0].message.content
 
 
-def construir_tarjeta_municipio(datos):
-    """Tarjeta con el detalle completo de un municipio (antes se mostraba en
-    un popup sobre el mapa; ahora vive en el panel de abajo para que el
-    click en el mapa no tenga que construir un popup HTML por municipio)."""
+def construir_popup(datos):
+    """HTML del popup nativo del mapa (se abre al clickear un municipio).
+    Se inyecta como property del GeoJson y Leaflet lo renderiza en el
+    navegador sin volver a pasar por Python, así que abrir el popup no
+    dispara ningún rerun de Streamlit ni tiene tiempo de carga."""
     iec = datos.get('iec', 0)
     nivel = datos.get('nivel_efectividad', 'N/A')
     diferencia = datos.get('diferencia_vs_cluster', 0)
@@ -91,7 +93,7 @@ def construir_tarjeta_municipio(datos):
     signo = "+" if diferencia > 0 else ""
 
     return f"""
-        <div style="font-family: Arial; max-width: 420px;">
+        <div style="font-family: Arial; min-width: 220px; max-width: 280px;">
             <h4 style="margin:0 0 2px 0; color:#222;">{datos.get('municipio', 'N/A')}</h4>
             <p style="margin:0 0 8px 0; color:#888; font-size:12px;">
                 {datos.get('departamento', '')} · {datos.get('region', '')}
@@ -138,24 +140,57 @@ def construir_tarjeta_municipio(datos):
     """
 
 
-COLOMBIA_BOUNDS = [[-5.2, -83.0], [14.2, -65.8]]
+# Caja ajustada al territorio colombiano real (calculada a partir del propio
+# geojson) más un pequeño margen — antes era una caja continental genérica
+# que dejaba demasiado espacio en blanco alrededor del país al hacer zoom-out.
+COLOMBIA_BOUNDS = [[-4.7, -82.2], [13.7, -66.5]]
 COLOR_SIN_DATO = "#a0a0a0"  # mismo gris que utils/colores.py — antes eran dos grises distintos
 COLOR_ATENUADO = "#d9d9d9"
+
+
+@st.cache_data(show_spinner=False)
+def _geojson_con_detalle(_iec_df_full, geojson):
+    """Devuelve una copia del geojson con el nombre de tooltip y el HTML del
+    popup ya inyectados en las properties de cada municipio. Es un dict
+    (dato inmutable), seguro de cachear y reutilizar entre reruns — a
+    diferencia de un folium.Map, no se muta cuando streamlit-folium lo
+    renderiza. Con esto Leaflet arma el popup en el navegador a partir de
+    las properties de cada feature, sin que Python tenga que construir un
+    folium.Popup por municipio en cada rerun."""
+    iec_dict = _iec_df_full.set_index("codigo_municipio_men").to_dict("index")
+    geojson_anotado = copy.deepcopy(geojson)
+    for feature in geojson_anotado["features"]:
+        codigo = feature["properties"].get("MPIO_CCNCT")
+        nombre = feature["properties"].get("MPIO_CNMBR", "Desconocido")
+        datos = iec_dict.get(codigo)
+        feature["properties"]["_nombre_tooltip"] = nombre
+        if datos:
+            feature["properties"]["_popup_html"] = construir_popup({**datos, "codigo_municipio_men": codigo})
+        else:
+            feature["properties"]["_popup_html"] = (
+                f"<div style='font-family:Arial;'><b>{nombre}</b><br>Sin datos en el análisis</div>"
+            )
+    return geojson_anotado
 
 
 def construir_mapa(iec_df, geojson, codigo_seleccionado=None):
     mapa = folium.Map(
         location=[4.5, -74.0],
         zoom_start=5,
-        tiles=None,  # sin capa base: solo se ve Colombia coloreada, el resto queda en blanco
-        min_zoom=5,
+        # Base clara y minimalista (gris claro, sin etiquetas vistosas) para
+        # que se note el resto del mundo sin competir con los colores del
+        # IEC. No usamos "CartoDB positron": desde hace poco exige API key.
+        # Este servicio de Esri es de uso libre y no requiere key.
+        tiles="https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        attr="Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ",
+        min_zoom=5.5,
         max_bounds=True,
     )
-    # Fondo blanco fuera de los municipios (el contenedor de Leaflet es
-    # transparente por defecto y mostraría el gris del tema de Streamlit).
-    mapa.get_root().html.add_child(folium.Element(
-        "<style>.leaflet-container { background: #ffffff; }</style>"
-    ))
+    # zoomSnap/zoomDelta fraccionarios para que fit_bounds pueda ajustar el
+    # zoom con precisión (por defecto Leaflet solo usa niveles enteros, lo
+    # que dejaba de más espacio en blanco alrededor del país).
+    mapa.options["zoomSnap"] = 0.25
+    mapa.options["zoomDelta"] = 0.25
     mapa.fit_bounds(COLOMBIA_BOUNDS)
     mapa.options["maxBounds"] = COLOMBIA_BOUNDS
     mapa.options["maxBoundsViscosity"] = 1.0
@@ -212,18 +247,27 @@ def construir_mapa(iec_df, geojson, codigo_seleccionado=None):
     )
 
     # Una sola capa GeoJson para los 1122 municipios en vez de una por
-    # municipio: evita reconstruir >1000 objetos folium (y sus popups en
-    # IFrame) en cada rerun, que era lo que hacía lento el click. El detalle
-    # de cada municipio (antes en un popup) ahora vive en el panel de abajo.
+    # municipio: evita reconstruir >1000 objetos folium en cada rerun, que
+    # era lo que hacía lento el click. El popup usa GeoJsonPopup, que arma
+    # el HTML en el navegador a partir de las properties de cada feature
+    # (ya inyectadas por _geojson_con_detalle) en vez de que Python cree un
+    # folium.Popup en IFrame por municipio — por eso abrir el popup es
+    # instantáneo y no depende de un rerun de Streamlit.
     folium.GeoJson(
         geojson,
         style_function=style_function,
         highlight_function=highlight_function,
         tooltip=folium.GeoJsonTooltip(
-            fields=["MPIO_CNMBR"],
+            fields=["_nombre_tooltip"],
             aliases=["Municipio:"],
             style=tooltip_style,
             sticky=True,
+        ),
+        popup=folium.GeoJsonPopup(
+            fields=["_popup_html"],
+            labels=False,
+            localize=False,
+            maxWidth=300,
         ),
     ).add_to(mapa)
 
@@ -248,8 +292,9 @@ def _construir_mapa_con_filtros(iec_df_full, region_sel, nivel_sel, solo_pdet, s
     cachear/reutilizar: se mutan internamente cada vez que st_folium los
     renderiza, y reusar el mismo objeto entre reruns causa
     'OrderedDict mutated during iteration'). Lo que sí reutilizamos de caché
-    es el geojson leído de disco (dato inmutable, no objeto con estado)."""
-    geojson = cargar_geojson()
+    es el geojson (leído de disco y anotado con nombre/popup por municipio),
+    dato inmutable y no un objeto con estado."""
+    geojson = _geojson_con_detalle(iec_df_full, cargar_geojson())
     df_filtrado = _filtrar_iec(iec_df_full, region_sel, nivel_sel, solo_pdet, solo_cd)
     return construir_mapa(df_filtrado, geojson, codigo_seleccionado=codigo_sel)
 
@@ -259,8 +304,9 @@ def render_mapa():
         "Este mapa muestra el **IEC (Índice de Efectividad de Conectividad)** de cada "
         "municipio colombiano, en una escala de 0 a 100. Usa los filtros para acotar por "
         "región, nivel de efectividad, zona PDET o presencia de Centro Digital. "
-        "Haz clic sobre un municipio para ver el detalle completo de sus componentes "
-        "en el panel de abajo."
+        "Haz clic sobre un municipio para ver su detalle en un cuadro emergente. "
+        "Para generar un análisis con IA, selecciónalo además en el filtro "
+        "**Municipio** de abajo."
     )
 
     if st.button("🔄 Recargar datos"):
@@ -318,8 +364,13 @@ def render_mapa():
 
     mapa = _construir_mapa_con_filtros(iec_df, region_sel, nivel_sel, solo_pdet, solo_cd, codigo_sel)
 
-    # OJO: ya NO pasamos returned_objects=[]; necesitamos que st_folium
-    # devuelva el municipio sobre el que el usuario hizo clic.
+    # returned_objects=[] a propósito: el popup y el resaltado de un click
+    # ya los resuelve Leaflet en el navegador (ver construir_mapa), así que
+    # no necesitamos que st_folium devuelva nada al clickear. Si capturáramos
+    # el click acá, cada click dispararía un rerun completo de Streamlit,
+    # que es justo la demora que se quería evitar. El análisis con IA usa
+    # en cambio el filtro "Municipio" de arriba, que el usuario selecciona
+    # aparte.
     #
     # El "key" tiene que cambiar cuando cambian los filtros. Si se deja fijo,
     # streamlit-folium intenta reutilizar el mismo contenedor Leaflet y
@@ -329,65 +380,39 @@ def render_mapa():
     # (como al resaltar un municipio distinto). Con un key dinámico, cada
     # combinación de filtros obtiene su propio contenedor limpio.
     key_mapa = f"mapa_principal_{region_sel}_{nivel_sel}_{solo_pdet}_{solo_cd}_{codigo_sel}"
-    salida = st_folium(
+    st_folium(
         mapa,
         use_container_width=True,
         height=650,
-        returned_objects=["last_active_drawing"],
+        returned_objects=[],
         key=key_mapa,
     )
 
     # --- Panel de análisis con IA del municipio seleccionado -----------
-    _render_panel_analisis(salida, iec_df)
+    _render_panel_analisis(iec_df, codigo_sel)
 
 
-def _municipio_desde_click(salida, iec_df):
-    """A partir de la salida de st_folium identifica el municipio clickeado,
-    usando el código de municipio (único) en vez del nombre — dos municipios
-    distintos pueden llamarse igual en departamentos diferentes, así que
-    comparar por nombre puede traer el municipio equivocado."""
-    if not salida:
-        return None
-
-    obj = salida.get("last_active_drawing") or salida.get("last_object_clicked_tooltip")
-    props = obj.get("properties", {}) if isinstance(obj, dict) else {}
-
-    # 1) Vía código de municipio (confiable, único)
-    codigo = props.get("MPIO_CCNCT")
-    if codigo:
-        coincidencias = iec_df[iec_df["codigo_municipio_men"] == codigo]
-        if not coincidencias.empty:
-            return coincidencias.iloc[0].to_dict()
-
-    # 2) Respaldo por nombre, solo si por algún motivo no vino el código
-    nombre = props.get("_nombre_tooltip") or props.get("MPIO_CNMBR")
-    if not nombre and isinstance(obj, str):
-        nombre = obj
-    if nombre:
-        coincidencias = iec_df[iec_df["municipio"].str.upper() == str(nombre).upper()]
-        if not coincidencias.empty:
-            return coincidencias.iloc[0].to_dict()
-
-    return None
-
-
-def _render_panel_analisis(salida, iec_df):
+def _render_panel_analisis(iec_df, codigo_sel):
     st.divider()
     st.markdown("### 🤖 Análisis del municipio con IA")
 
-    datos = _municipio_desde_click(salida, iec_df)
-
-    if datos is None:
+    if not codigo_sel:
         st.info(
-            "Haz clic en un municipio del mapa para seleccionarlo y luego genera "
-            "un análisis detallado con inteligencia artificial."
+            "Selecciona un municipio en el filtro **Municipio** de arriba "
+            "para generar un análisis detallado con inteligencia artificial."
         )
         return
 
-    # El detalle completo del municipio (antes se mostraba en un popup sobre
-    # el mapa) se muestra acá. Guardamos el análisis en la sesión para que
-    # persista aunque Streamlit se recargue.
-    st.markdown(construir_tarjeta_municipio(datos), unsafe_allow_html=True)
+    coincidencias = iec_df[iec_df["codigo_municipio_men"] == codigo_sel]
+    if coincidencias.empty:
+        st.info("No hay datos de este municipio en el análisis.")
+        return
+    datos = coincidencias.iloc[0].to_dict()
+
+    st.markdown(
+        f"Municipio seleccionado: **{datos.get('municipio')}** "
+        f"({datos.get('departamento')}) · IEC {datos.get('iec', 0):.1f}"
+    )
 
     if st.button("✨ Generar análisis del municipio", use_container_width=True, key="btn_analisis_municipio"):
         with st.spinner("Generando análisis con IA..."):

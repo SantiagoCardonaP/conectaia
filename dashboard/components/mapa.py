@@ -78,7 +78,10 @@ máximo 160 palabras en total.
     return response.choices[0].message.content
 
 
-def construir_popup(datos):
+def construir_tarjeta_municipio(datos):
+    """Tarjeta con el detalle completo de un municipio (antes se mostraba en
+    un popup sobre el mapa; ahora vive en el panel de abajo para que el
+    click en el mapa no tenga que construir un popup HTML por municipio)."""
     iec = datos.get('iec', 0)
     nivel = datos.get('nivel_efectividad', 'N/A')
     diferencia = datos.get('diferencia_vs_cluster', 0)
@@ -88,7 +91,7 @@ def construir_popup(datos):
     signo = "+" if diferencia > 0 else ""
 
     return f"""
-        <div style="font-family: Arial; min-width: 220px; max-width: 280px;">
+        <div style="font-family: Arial; max-width: 420px;">
             <h4 style="margin:0 0 2px 0; color:#222;">{datos.get('municipio', 'N/A')}</h4>
             <p style="margin:0 0 8px 0; color:#888; font-size:12px;">
                 {datos.get('departamento', '')} · {datos.get('region', '')}
@@ -131,9 +134,6 @@ def construir_popup(datos):
                 {'✅ Centro Digital activo' if datos.get('tiene_centro_digital') else '❌ Sin Centro Digital'}
                 {'· 🏔️ Zona PDET' if datos.get('es_pdet') else ''}
             </p>
-            <p style="margin:8px 0 0 0; font-size:11px; color:#2b6cb0; font-style:italic;">
-                👉 Cierra este cuadro y usa el botón de análisis con IA debajo del mapa.
-            </p>
         </div>
     """
 
@@ -143,25 +143,19 @@ COLOR_SIN_DATO = "#a0a0a0"  # mismo gris que utils/colores.py — antes eran dos
 COLOR_ATENUADO = "#d9d9d9"
 
 
-@st.cache_data(show_spinner=False)
-def _popups_por_codigo(_iec_df_full):
-    """Genera una sola vez el HTML de cada popup y lo cachea, indexado por
-    código de municipio. A diferencia de un folium.Map, un string es
-    inmutable y seguro de cachear/reutilizar entre reruns."""
-    popups = {}
-    for _, fila in _iec_df_full.iterrows():
-        popups[fila["codigo_municipio_men"]] = construir_popup(fila.to_dict())
-    return popups
-
-
-def construir_mapa(iec_df, geojson, codigo_seleccionado=None, popups_html=None):
+def construir_mapa(iec_df, geojson, codigo_seleccionado=None):
     mapa = folium.Map(
         location=[4.5, -74.0],
         zoom_start=5,
-        tiles="OpenStreetMap",
+        tiles=None,  # sin capa base: solo se ve Colombia coloreada, el resto queda en blanco
         min_zoom=5,
         max_bounds=True,
     )
+    # Fondo blanco fuera de los municipios (el contenedor de Leaflet es
+    # transparente por defecto y mostraría el gris del tema de Streamlit).
+    mapa.get_root().html.add_child(folium.Element(
+        "<style>.leaflet-container { background: #ffffff; }</style>"
+    ))
     mapa.fit_bounds(COLOMBIA_BOUNDS)
     mapa.options["maxBounds"] = COLOMBIA_BOUNDS
     mapa.options["maxBoundsViscosity"] = 1.0
@@ -217,30 +211,21 @@ def construir_mapa(iec_df, geojson, codigo_seleccionado=None, popups_html=None):
         "border:1px solid #999; border-radius:4px;"
     )
 
-    for feature in geojson["features"]:
-        codigo = feature["properties"].get("MPIO_CCNCT")
-        datos = iec_dict.get(codigo)
-        feature["properties"]["_nombre_tooltip"] = feature["properties"].get("MPIO_CNMBR", "Desconocido")
-
-        if datos:
-            popup_html = (popups_html or {}).get(codigo) or construir_popup(datos)
-            popup = folium.Popup(popup_html, max_width=300)
-        else:
-            nombre = feature["properties"].get("MPIO_CNMBR", "Desconocido")
-            popup = folium.Popup(f"<b>{nombre}</b><br>Sin datos en el análisis", max_width=200)
-
-        folium.GeoJson(
-            feature,
-            style_function=style_function,
-            highlight_function=highlight_function,
-            tooltip=folium.GeoJsonTooltip(
-                fields=["_nombre_tooltip"],
-                aliases=["Municipio:"],
-                style=tooltip_style,
-                sticky=True,
-            ),
-            popup=popup,
-        ).add_to(mapa)
+    # Una sola capa GeoJson para los 1122 municipios en vez de una por
+    # municipio: evita reconstruir >1000 objetos folium (y sus popups en
+    # IFrame) en cada rerun, que era lo que hacía lento el click. El detalle
+    # de cada municipio (antes en un popup) ahora vive en el panel de abajo.
+    folium.GeoJson(
+        geojson,
+        style_function=style_function,
+        highlight_function=highlight_function,
+        tooltip=folium.GeoJsonTooltip(
+            fields=["MPIO_CNMBR"],
+            aliases=["Municipio:"],
+            style=tooltip_style,
+            sticky=True,
+        ),
+    ).add_to(mapa)
 
     return mapa
 
@@ -263,12 +248,10 @@ def _construir_mapa_con_filtros(iec_df_full, region_sel, nivel_sel, solo_pdet, s
     cachear/reutilizar: se mutan internamente cada vez que st_folium los
     renderiza, y reusar el mismo objeto entre reruns causa
     'OrderedDict mutated during iteration'). Lo que sí reutilizamos de caché
-    es el trabajo pesado que es seguro cachear: el geojson leído de disco y
-    el HTML de los popups (ambos son datos inmutables, no objetos con estado)."""
+    es el geojson leído de disco (dato inmutable, no objeto con estado)."""
     geojson = cargar_geojson()
-    popups_html = _popups_por_codigo(iec_df_full)
     df_filtrado = _filtrar_iec(iec_df_full, region_sel, nivel_sel, solo_pdet, solo_cd)
-    return construir_mapa(df_filtrado, geojson, codigo_seleccionado=codigo_sel, popups_html=popups_html)
+    return construir_mapa(df_filtrado, geojson, codigo_seleccionado=codigo_sel)
 
 
 def render_mapa():
@@ -276,7 +259,8 @@ def render_mapa():
         "Este mapa muestra el **IEC (Índice de Efectividad de Conectividad)** de cada "
         "municipio colombiano, en una escala de 0 a 100. Usa los filtros para acotar por "
         "región, nivel de efectividad, zona PDET o presencia de Centro Digital. "
-        "Haz clic sobre un municipio para ver el detalle completo de sus componentes."
+        "Haz clic sobre un municipio para ver el detalle completo de sus componentes "
+        "en el panel de abajo."
     )
 
     if st.button("🔄 Recargar datos"):
@@ -400,12 +384,10 @@ def _render_panel_analisis(salida, iec_df):
         )
         return
 
-    # Guardamos el municipio seleccionado en la sesión para que el análisis
+    # El detalle completo del municipio (antes se mostraba en un popup sobre
+    # el mapa) se muestra acá. Guardamos el análisis en la sesión para que
     # persista aunque Streamlit se recargue.
-    st.markdown(
-        f"Municipio seleccionado: **{datos.get('municipio')}** "
-        f"({datos.get('departamento')}) · IEC {datos.get('iec', 0):.1f}"
-    )
+    st.markdown(construir_tarjeta_municipio(datos), unsafe_allow_html=True)
 
     if st.button("✨ Generar análisis del municipio", use_container_width=True, key="btn_analisis_municipio"):
         with st.spinner("Generando análisis con IA..."):

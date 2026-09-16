@@ -158,7 +158,8 @@ def construir_mapa(iec_df, geojson, codigo_seleccionado=None, popups_html=None):
     mapa = folium.Map(
         location=[4.5, -74.0],
         zoom_start=5,
-        tiles="CartoDB positron",
+        tiles="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
+        attr='&copy; OpenStreetMap contributors &copy; CARTO',
         min_zoom=5,
         max_bounds=True,
     )

@@ -56,6 +56,18 @@ gold.modelo_resultados (grano: variable del modelo Random Forest)
     variable TEXT, importancia NUMERIC
 """
 
+# Glosario compartido por los dos pasos del pipeline (generar SQL y redactar
+# la respuesta). Si solo vive en el prompt de _generar_sql, el paso que
+# redacta la respuesta ve la sigla "IEC" sin contexto y el modelo la
+# interpreta con su conocimiento general (p. ej. "Índice de Equidad de
+# Género") en vez de la definición real del proyecto.
+GLOSARIO = """
+- IEC = Índice de Efectividad de Conectividad: puntaje de 0 a 100 que mide el impacto
+  educativo de los Centros Digitales Rurales en un municipio. Se calcula combinando
+  deserción escolar (40%), cobertura neta (35%) y tasa de aprobación (25%).
+  Un IEC más alto significa mejor desempeño educativo.
+"""
+
 PALABRAS_PROHIBIDAS = [
     "insert", "update", "delete", "drop", "alter", "truncate",
     "create", "grant", "revoke", "--", "/*", ";", "copy", "call",
@@ -106,10 +118,7 @@ de PostgreSQL, usando EXCLUSIVAMENTE el siguiente esquema:
 {ESQUEMA_DESCRIPCION}
 
 Glosario importante:
-- IEC = Índice de Efectividad de Conectividad: puntaje de 0 a 100 que mide el impacto
-  educativo de los Centros Digitales Rurales en un municipio. Se calcula combinando
-  deserción escolar (40%), cobertura neta (35%) y tasa de aprobación (25%).
-  Un IEC más alto significa mejor desempeño educativo.
+{GLOSARIO}
 
 Reglas:
 - Responde ÚNICAMENTE con la consulta SQL, sin explicación, sin markdown.
@@ -131,6 +140,14 @@ Reglas:
 
 def _generar_respuesta_natural(client: OpenAI, pregunta: str, df: pd.DataFrame) -> str:
     tabla_muestra = df.head(20).to_markdown(index=False)
+    system_prompt = f"""Redactas en español la respuesta a una pregunta sobre el proyecto
+ConectaIA (impacto educativo de los Centros Digitales Rurales), a partir de los resultados
+de una consulta a la base de datos.
+
+Glosario importante (usa las siglas y términos EXACTAMENTE con este significado, nunca con
+el que tengan en otros contextos o dominios):
+{GLOSARIO}"""
+
     prompt = f"""El usuario preguntó: "{pregunta}"
 
 Estos son los resultados de la consulta a la base de datos (máximo 20 filas mostradas):
@@ -144,7 +161,10 @@ No inventes datos que no estén en la tabla."""
     respuesta = client.chat.completions.create(
         model=MODEL_NAME,
         temperature=0.3,
-        messages=[{"role": "user", "content": prompt}],
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt},
+        ],
     )
     return respuesta.choices[0].message.content.strip()
 

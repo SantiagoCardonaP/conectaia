@@ -68,6 +68,14 @@ GLOSARIO = """
   Un IEC más alto significa mejor desempeño educativo.
 """
 
+PREGUNTAS_SUGERIDAS = [
+    "¿Cuál es el municipio con mayor IEC?",
+    "¿Cuál es la inversión total en Centros Digitales por región?",
+    "¿Existe relación entre la inversión y el IEC de un municipio?",
+    "¿Cuántos municipios PDET tienen Centro Digital?",
+    "¿Qué municipio tiene mayor cantidad de usuarios activos?",
+]
+
 PALABRAS_PROHIBIDAS = [
     "insert", "update", "delete", "drop", "alter", "truncate",
     "create", "grant", "revoke", "--", "/*", ";", "copy", "call",
@@ -198,6 +206,15 @@ def _procesar_pregunta(client: OpenAI, pregunta: str) -> str:
         return f"Encontré estos resultados, pero no pude redactar el resumen:\n\n{df.head(20).to_markdown(index=False)}"
 
 
+def _formular_pregunta(client: OpenAI, pregunta: str) -> None:
+    st.session_state.chat_historial.append(("user", pregunta))
+    st.session_state.preguntas_usadas += 1
+    with st.spinner("Consultando los datos..."):
+        respuesta = _procesar_pregunta(client, pregunta)
+    st.session_state.chat_historial.append(("assistant", respuesta))
+    st.rerun()
+
+
 def render_chat_flotante():
     """Botón de chat flotante (abajo a la derecha), visible en toda la app."""
 
@@ -228,11 +245,15 @@ def render_chat_flotante():
             if client is None:
                 return
 
+            # Preguntas predeterminadas: solo antes de la primera pregunta,
+            # para que el usuario tenga un punto de partida rápido sin
+            # llenar el chat de botones una vez ya está conversando.
+            if not st.session_state.chat_historial:
+                st.caption("Preguntas frecuentes:")
+                for i, preg in enumerate(PREGUNTAS_SUGERIDAS):
+                    if st.button(preg, key=f"pregunta_sugerida_{i}", use_container_width=True):
+                        _formular_pregunta(client, preg)
+
             pregunta = st.chat_input("Escribe tu pregunta...")
             if pregunta:
-                st.session_state.chat_historial.append(("user", pregunta))
-                st.session_state.preguntas_usadas += 1
-                with st.spinner("Consultando los datos..."):
-                    respuesta = _procesar_pregunta(client, pregunta)
-                st.session_state.chat_historial.append(("assistant", respuesta))
-                st.rerun()
+                _formular_pregunta(client, pregunta)

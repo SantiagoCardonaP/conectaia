@@ -201,6 +201,25 @@ header.stAppHeader .e1yxiy6j6 {
     margin-left: 10px;
 }
 
+/* Texto dentro de la ventana del chat (título, contador de preguntas,
+   preguntas sugeridas, mensajes, input): la regla global de arriba
+   ("p, ol, ul { color: #545454 }") le gana en la cascada al color de
+   texto del tema de Streamlit y lo deja casi invisible en modo oscuro.
+   Se fuerza blanco para que siempre se lea, sin importar el tema. */
+[data-testid="stPopoverBody"] p,
+[data-testid="stPopoverBody"] span,
+[data-testid="stPopoverBody"] li,
+[data-testid="stPopoverBody"] label,
+[data-testid="stPopoverBody"] small,
+[data-testid="stPopoverBody"] textarea {
+    color: #ffffff !important;
+}
+
+[data-testid="stPopoverBody"] textarea::placeholder {
+    color: #ffffff !important;
+    opacity: 0.6;
+}
+
 .stVerticalBlock.st-key-chat_flotante .st-emotion-cache-28gi3v,
 .stVerticalBlock.st-key-chat_flotante .st-emotion-cache-1dkvzay {
     width: 20px;

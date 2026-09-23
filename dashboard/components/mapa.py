@@ -332,8 +332,8 @@ def render_mapa():
         with col2:
             nivel_sel  = st.selectbox("Nivel de efectividad", ["Todos", "Alto", "Medio", "Bajo"])
         with col3:
-            solo_pdet  = st.checkbox("Solo municipios PDET (Programas de Desarrollo con Enfoque Territorial)")
-            solo_cd    = st.checkbox("Solo con municipios con Centro Digital activo")
+            solo_pdet  = st.checkbox("Solo PDET (Programas de Desarrollo con Enfoque Territorial)")
+            solo_cd    = st.checkbox("Solo Centro Digital activo")
         with col4:
             municipios_tabla = (
                 iec_df[["municipio", "codigo_municipio_men"]]

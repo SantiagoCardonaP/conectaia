@@ -282,6 +282,11 @@
   - Los CDs con mayor inversión y mejores velocidades tienden también a tener más usuarios, lo que crea un círculo virtuoso de impacto.
 
   ---
+  
+  ## Enlace al video demo:
+  [Ir al video](https://drive.google.com/file/d/1kdAyYwwZtTVJc9Nd5K9U-7MLm4kFhIFS/view?usp=sharing) 
+
+  ---
 
   *ConectaIA fue desarrollado como propuesta para la competencia de datos abiertos, usando exclusivamente fuentes oficiales del Gobierno colombiano.*
 

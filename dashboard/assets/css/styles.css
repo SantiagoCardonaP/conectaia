@@ -205,18 +205,21 @@ header.stAppHeader .e1yxiy6j6 {
    preguntas sugeridas, mensajes, input): la regla global de arriba
    ("p, ol, ul { color: #545454 }") le gana en la cascada al color de
    texto del tema de Streamlit y lo deja casi invisible en modo oscuro.
-   Se fuerza blanco para que siempre se lea, sin importar el tema. */
+   Se usa "inherit" (no un color fijo) para que tome el color de texto
+   real del tema de Streamlit -ya correcto en claro y oscuro-, en vez de
+   forzar blanco, que se veía bien en oscuro pero dejaba el texto
+   invisible en modo claro (blanco sobre blanco). */
 [data-testid="stPopoverBody"] p,
 [data-testid="stPopoverBody"] span,
 [data-testid="stPopoverBody"] li,
 [data-testid="stPopoverBody"] label,
 [data-testid="stPopoverBody"] small,
 [data-testid="stPopoverBody"] textarea {
-    color: #ffffff !important;
+    color: inherit !important;
 }
 
 [data-testid="stPopoverBody"] textarea::placeholder {
-    color: #ffffff !important;
+    color: inherit !important;
     opacity: 0.6;
 }
 
